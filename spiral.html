@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  
+  <canvas></canvas>
+  <script>
+    const batch = 200;
+    const shouldStop = {
+      basic: (srcLight, i) => srcLight < 0.5,
+      random: (srcLight, i) => srcLight < Math.random(),
+      semiRandom: (srcLight, i) => srcLight < 0.01 + Math.random() * 0.3,
+      invert: (srcLight, i) => srcLight < (1-(1/i)),
+      linear: (srcLight, i) => srcLight < (i / 50),
+      square: (srcLight, i) => srcLight < (i * i / 1000),
+      looped: (srcLight, i) => ((srcLight * 3) % 1) < (i / 100),
+    }.looped;
+    const pauseAt = 0.5;
+
+    const image = new Image();
+    image.src = '/images/red-lips.jpg';
+    const { width, height } = image;
+
+    const createMatrix = (fn) => (new Array(width)).fill().map((_, x) => (
+      (new Array(height)).fill().map((_, y) => (
+        fn(x, y)
+      ))
+    ));
+
+    image.onload = () => {
+
+      // get source image data
+      const canvas = document.querySelector('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      context.filter = 'grayscale(100%)';
+      context.drawImage(image, 0, 0);
+      const srcData = context.getImageData(0, 0, width, height).data;
+      const src = createMatrix((x, y) => srcData[4*(width*y+x)] / 256);
+      const drawn = createMatrix(() => false);
+      context.filter = '';
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = 'black';
+
+      const pos = {
+        x: Math.floor(width/2),
+        y: Math.floor(height/2),
+      }
+      const draw = () => {
+        context.fillRect(pos.x, pos.y, 1, 1);
+        drawn[pos.x][pos.y] = true;
+      }
+      const isInCanvas = ({x, y}) => x >=0 && x < width && y >= 0 && y < height;
+      function* spiralPositions() {
+        const spiralPosition = { ...pos };
+        for (let l = 1; l < Math.max(width, height); l += 2) {
+          for (let i = 0; i < l; i++) {
+            spiralPosition.x++;
+            if (isInCanvas(spiralPosition)) yield spiralPosition;
+          }
+          for (let i = 0; i < l; i++) {
+            spiralPosition.y++;
+            if (isInCanvas(spiralPosition)) yield spiralPosition;
+          }
+          for (let i = 0; i < l + 1; i++) {
+            spiralPosition.x--;
+            if (isInCanvas(spiralPosition)) yield spiralPosition;
+          }
+          for (let i = 0; i < l + 1; i++) {
+            spiralPosition.y--;
+            if (isInCanvas(spiralPosition)) yield spiralPosition;
+          }
+        }
+        throw 'done';
+      }
+      const move = () => {
+        let i = 0;
+        for (const spiralPosition of spiralPositions()) {
+          i++;
+          const { x, y } = spiralPosition;
+          if (!drawn[x][y]) {
+            if (shouldStop(src[x][y], i)) {
+              pos.x = spiralPosition.x;
+              pos.y = spiralPosition.y;
+              return i;
+            }
+          }
+        }
+      }
+
+      let nbDrawn = 0;
+      const loop = () => {
+        try {
+          for (let i = 0; i < batch; i++) {
+            move();
+            draw();
+            nbDrawn++;
+          }
+          if (nbDrawn > width * height * pauseAt ) throw 'done';
+          requestAnimationFrame(loop);
+        } catch(e) {
+          if (e !== 'done') throw e;
+        }
+      }
+      loop();
+
+    }
+  </script>
+
+</body>
+</html>
