@@ -1,17 +1,17 @@
-const batch = 200;
-const shouldStop = {
-  basic: (l) => l > 0.5,
-  random: (l) => l > Math.random(),
-  semiRandom: (l) => l > 0.99 - Math.random() * 0.3,
-  invert: (l, i) => l > 1/i,
-  linear: (l, i) => l > 1 - (i / 5),
-  square: (l, i) => l < (i * i / 1000),
-  looped: (l, i) => ((l * 5) % 1) < (i / 10),
-}.looped;
-const pauseAt = 0.5;
+const args = new URLSearchParams(location.search);
+const batch = +args.get('batch')
+const stop = ({
+  basic: (srcLight, i) => srcLight < +args.get('stopBasic'),
+  random: (srcLight, i) => srcLight < Math.random(),
+  invert: (srcLight, i) => srcLight < (1-(1/i)),
+  linear: (srcLight, i) => srcLight < (i / +args.get('stopLinearDivider')),
+  looped: (srcLight, i) => ((srcLight * +args.get('stopLoopedMultiplier')) % 1) < (i / +args.get('stopLoopedDivider')),
+})[args.get('stop')];
+const stopAt = +args.get('stopAt');
+const src = args.get('src');
 
 const image = new Image();
-image.src = '/images/red-lips.jpg';
+image.src = src;
 const { width, height } = image;
 
 const createMatrix = (fn) => (new Array(width)).fill().map((_, x) => (
@@ -96,7 +96,7 @@ image.onload = () => {
       i++;
       const { x, y } = spiralPosition;
       if (!drawn[x][y]) {
-        if (shouldStop(src[x][y], i)) {
+        if (stop(src[x][y], i)) {
           pos.x = spiralPosition.x;
           pos.y = spiralPosition.y;
           return i;
@@ -118,7 +118,7 @@ image.onload = () => {
         draw();
         nbDrawn++;
       }
-      if (nbDrawn > 3 * width * height * pauseAt ) throw 'done';
+      if (nbDrawn > 3 * width * height * stopAt ) throw 'done';
       requestAnimationFrame(loop);
     } catch(e) {
       if (e==='done') console.log('done');

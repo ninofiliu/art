@@ -19,13 +19,16 @@
         ))
       ));
 
-    const BLUR = 10;
-    const BATCH = 100;
-    const DIST = 5;
-    const NOISE = 1;
+
+    const args = new URLSearchParams(location.search);
+    const SRC = args.get('src');
+    const BLUR = +args.get('blur');
+    const BATCH = +args.get('batch');
+    const DIST = +args.get('dist');
+    const NOISE = +args.get('noise');
 
     const image = new Image();
-    image.src = '../input/redhead.jpg';
+    image.src = SRC;
     const { width, height } = image;
     image.onload = () => {
 

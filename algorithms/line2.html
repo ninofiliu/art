@@ -15,14 +15,16 @@
   <canvas></canvas>
 
   <script>
-    const DIST = 20;
-    const LINE_WIDTH = 2;
+    const args = new URLSearchParams(location.search);
+    const DIST = +args.get('dist');
+    const LINE_WIDTH = +args.get('line-width');
+    const SRC = args.get('src');
 
     (async () => {
 
       // load image
       const image = new Image();
-      image.src = '../input/tongue.jpg';
+      image.src = SRC;
       await new Promise(resolve => image.onload = resolve);
 
       // load image onto canvas

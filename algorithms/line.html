@@ -8,15 +8,17 @@
   
   <canvas></canvas>
   <script>
-    const BATCH = 100;
-    const DIST = 10;
+    const args = new URLSearchParams(location.search);
+    const BATCH = +args.get('batch');
+    const DIST = +args.get('dist');
+    const SRC = args.get('src');
 
     (async () => {
     
       // Load and draws the image
 
       const image = new Image();
-      image.src = '/images/pale-creatures.jpg';
+      image.src = SRC;
       await new Promise(resolve => image.onload = resolve);
 
       const canvas = document.querySelector('canvas');

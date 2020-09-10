@@ -1,27 +1,27 @@
-const batch = 200;
-const shouldStop = {
-  basic: (l) => l > 0.5,
-  random: (l) => l > Math.random(),
-  semiRandom: (l) => l > 0.99 - Math.random() * 0.3,
-  invert: (l, i) => l > 1/i,
-  linear: (l, i) => l > 1 - (i / 5),
-  square: (l, i) => l < (i * i / 1000),
-  looped: (l, i) => ((l * 5) % 1) < (i / 10),
-}.looped;
-const pauseAt = 0.09;
+const args = new URLSearchParams(location.search);
+const batch = +args.get('batch')
+const stop = ({
+  basic: (srcLight, i) => srcLight < +args.get('stopBasic'),
+  random: (srcLight, i) => srcLight < Math.random(),
+  invert: (srcLight, i) => srcLight < (1-(1/i)),
+  linear: (srcLight, i) => srcLight < (i / +args.get('stopLinearDivider')),
+  looped: (srcLight, i) => ((srcLight * +args.get('stopLoopedMultiplier')) % 1) < (i / +args.get('stopLoopedDivider')),
+})[args.get('stop')];
+const stopAt = +args.get('stopAt');
+const src = args.get('src');
 const palette = {
-  'rgb': '#000',
-  'rgB': '#555',
-  'rGb': '#555',
-  'rGB': '#5f5',
-  'Rgb': '#500',
-  'RgB': '#505',
-  'RGb': '#550',
-  'RGB': '#fff',
+  '000': args.get('palette-000'),
+  '00f': args.get('palette-00f'),
+  '0f0': args.get('palette-0f0'),
+  '0ff': args.get('palette-0ff'),
+  'f00': args.get('palette-f00'),
+  'f0f': args.get('palette-f0f'),
+  'ff0': args.get('palette-ff0'),
+  'fff': args.get('palette-fff'),
 };
 
 const image = new Image();
-image.src = '/images/vampire-babe.jpg';
+image.src = src;
 const { width, height } = image;
 
 const createMatrix = (fn) => (new Array(width)).fill().map((_, x) => (
@@ -55,9 +55,9 @@ image.onload = () => {
     drawnR[posR.x][posR.y] = true;
     context.fillStyle = palette[
       [
-        drawnR[posR.x][posR.y] ? 'R' : 'r',
-        drawnG[posR.x][posR.y] ? 'G' : 'g',
-        drawnB[posR.x][posR.y] ? 'B' : 'b',
+        drawnR[posR.x][posR.y] ? 'f' : '0',
+        drawnG[posR.x][posR.y] ? 'f' : '0',
+        drawnB[posR.x][posR.y] ? 'f' : '0',
       ].join('')
     ];
     context.fillRect(posR.x, posR.y, 1, 1);
@@ -65,9 +65,9 @@ image.onload = () => {
     drawnG[posG.x][posG.y] = true;
     context.fillStyle = palette[
       [
-        drawnR[posG.x][posG.y] ? 'R' : 'r',
-        drawnG[posG.x][posG.y] ? 'G' : 'g',
-        drawnB[posG.x][posG.y] ? 'B' : 'b',
+        drawnR[posG.x][posG.y] ? 'f' : '0',
+        drawnG[posG.x][posG.y] ? 'f' : '0',
+        drawnB[posG.x][posG.y] ? 'f' : '0',
       ].join('')
     ];
     context.fillRect(posG.x, posG.y, 1, 1);
@@ -75,9 +75,9 @@ image.onload = () => {
     drawnB[posB.x][posB.y] = true;
     context.fillStyle = palette[
       [
-        drawnR[posB.x][posB.y] ? 'R' : 'r',
-        drawnG[posB.x][posB.y] ? 'G' : 'g',
-        drawnB[posB.x][posB.y] ? 'B' : 'b',
+        drawnR[posB.x][posB.y] ? 'f' : '0',
+        drawnG[posB.x][posB.y] ? 'f' : '0',
+        drawnB[posB.x][posB.y] ? 'f' : '0',
       ].join('')
     ];
     context.fillRect(posB.x, posB.y, 1, 1);
@@ -112,7 +112,7 @@ image.onload = () => {
       i++;
       const { x, y } = spiralPosition;
       if (!drawn[x][y]) {
-        if (shouldStop(src[x][y], i)) {
+        if (stop(src[x][y], i)) {
           pos.x = spiralPosition.x;
           pos.y = spiralPosition.y;
           return i;
@@ -146,7 +146,7 @@ image.onload = () => {
         draw();
         nbDrawn++;
       }
-      if (nbDrawn > 3 * width * height * pauseAt ) throw 'done';
+      if (nbDrawn > 3 * width * height * stopAt ) throw 'done';
       requestAnimationFrame(loop);
     } catch(e) {
       if (e==='done') {

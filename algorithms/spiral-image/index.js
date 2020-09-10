@@ -1,16 +1,14 @@
-const batch = 500;
-const stopAt = 0.5;
-const shouldStop = {
-  basic: (l) => l < 0.5,
-  random: (l) => l < Math.random(),
-  semiRandom: (l) => l < 0.01 + Math.random() * 0.3,
-  invert: (l, i) => l < (1 - (1 / i)),
-  linear: (l, i) => l < (i / 3),
-  square: (l, i) => l < (i * i / 1000),
-  looped: (l, i) => ((l * 10) % 1) < (i / 100),
-}.linear;
-const debug = false;
-const src = '/images/dead-roses.jpg';
+const args = new URLSearchParams(location.search);
+const batch = +args.get('batch')
+const stop = ({
+  basic: (srcLight, i) => srcLight < +args.get('stopBasic'),
+  random: (srcLight, i) => srcLight < Math.random(),
+  invert: (srcLight, i) => srcLight < (1-(1/i)),
+  linear: (srcLight, i) => srcLight < (i / +args.get('stopLinearDivider')),
+  looped: (srcLight, i) => ((srcLight * +args.get('stopLoopedMultiplier')) % 1) < (i / +args.get('stopLoopedDivider')),
+})[args.get('stop')];
+const stopAt = +args.get('stopAt');
+const src = args.get('src');
 
 // ---
 
@@ -71,7 +69,7 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
       for (let j = 0; j < i; j++) {
         x++;
         if (isInCanvas() && !drawn[x][y]) {
-          if (shouldStop(srcGrey[x][y], k)) {
+          if (stop(srcGrey[x][y], k)) {
             pos.x = x;
             pos.y = y;
             return;
@@ -81,7 +79,7 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
       for (let j = 0; j < i; j++) {
         y++;
         if (isInCanvas() && !drawn[x][y]) {
-          if (shouldStop(srcGrey[x][y], k)) {
+          if (stop(srcGrey[x][y], k)) {
             pos.x = x;
             pos.y = y;
             return;
@@ -91,7 +89,7 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
       for (let j = 0; j < i + 1; j++) {
         x--;
         if (isInCanvas() && !drawn[x][y]) {
-          if (shouldStop(srcGrey[x][y], k)) {
+          if (stop(srcGrey[x][y], k)) {
             pos.x = x;
             pos.y = y;
             return;
@@ -101,7 +99,7 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
       for (let j = 0; j < i + 1; j++) {
         y--;
         if (isInCanvas() && !drawn[x][y]) {
-          if (shouldStop(srcGrey[x][y], k)) {
+          if (stop(srcGrey[x][y], k)) {
             pos.x = x;
             pos.y = y;
             return;
@@ -112,17 +110,6 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
   };
 
   
-  if (debug) {
-    const interval = setInterval(() => {
-      try {
-        move();
-        draw();
-      } catch(e) {
-        console.log(e);
-        clearInterval(interval);
-      }
-    }, 1000 / 100);
-  } else {
     let nbDrawn = 0;
     const loop = () => {
       try {
@@ -141,6 +128,5 @@ const createMatrix = (width, height, fn) => (new Array(width)).fill().map((_, x)
       }
     };
     loop();
-  }
 
 })();
