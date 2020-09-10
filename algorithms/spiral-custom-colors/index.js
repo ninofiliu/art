@@ -22,15 +22,15 @@ const palette = {
 
 const image = new Image();
 image.src = src;
-const { width, height } = image;
-
-const createMatrix = (fn) => (new Array(width)).fill().map((_, x) => (
-  (new Array(height)).fill().map((_, y) => (
-    fn(x, y)
-  ))
-));
 
 image.onload = () => {
+  const { width, height } = image;
+  
+  const createMatrix = (fn) => (new Array(width)).fill().map((_, x) => (
+    (new Array(height)).fill().map((_, y) => (
+      fn(x, y)
+    ))
+  ));
 
   const canvas = document.querySelector('canvas');
   canvas.width = width;
