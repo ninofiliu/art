@@ -1,1 +1,1 @@
-import "./stereo";
+import "./audio";
