@@ -1,0 +1,8 @@
+:root {
+  font-family: monospace;
+  color-scheme: dark;
+}
+button,
+input {
+  font: inherit;
+}

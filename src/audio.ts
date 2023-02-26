@@ -1,18 +1,7 @@
-export {};
+import getAudioContext from "./shared/getAudioContext";
 
 (async () => {
-  const ac = new AudioContext();
-
-  if (ac.state === "suspended") {
-    const button = document.createElement("button");
-    document.body.append(button);
-    button.textContent = "start audio context";
-    await new Promise((r) =>
-      button.addEventListener("click", r, { once: true })
-    );
-    button.remove();
-    await ac.resume();
-  }
+  const ac = await getAudioContext();
 
   const createKicker = () => {
     const osc = ac.createOscillator();
