@@ -2,7 +2,7 @@ import { x } from "../shared/x";
 
 export type SpiralParams = {
   ctx: CanvasRenderingContext2D;
-  imageData: ImageData;
+  id: ImageData;
   channel: 0 | 1 | 2;
   /** between 0 and 1 */
   stopAt: number;
@@ -33,7 +33,7 @@ export type SpiralParams = {
 );
 
 export const createSpiral = (params: SpiralParams) => {
-  const { width, height } = params.imageData;
+  const { width, height } = params.id;
 
   const state = {
     x: Math.floor(width / 2),
@@ -65,7 +65,7 @@ export const createSpiral = (params: SpiralParams) => {
       .map((_, x) => new Array(height).fill(null).map((__, y) => fn(x, y)));
 
   const src = createMatrix(
-    (x, y) => params.imageData.data[4 * (width * y + x) + params.channel] / 256
+    (x, y) => params.id.data[4 * (width * y + x) + params.channel] / 256
   );
   const drawn = createMatrix(() => false);
 
@@ -158,23 +158,23 @@ export const getCoveredImageData = async (
 };
 
 const runImage = async (
-  imageData: ImageData,
+  id: ImageData,
   ctx: CanvasRenderingContext2D
 ): Promise<void> => {
   const batch = 300;
 
   const channels = [0, 1, 2] as const;
   const palette = channels.map(() => {
-    const index = ~~(Math.random() * imageData.width * imageData.height);
-    const r = imageData.data[4 * index + 0];
-    const g = imageData.data[4 * index + 1];
-    const b = imageData.data[4 * index + 2];
+    const index = ~~(Math.random() * id.width * id.height);
+    const r = id.data[4 * index + 0];
+    const g = id.data[4 * index + 1];
+    const b = id.data[4 * index + 2];
     return `rgb(${r},${g},${b})`;
   });
   const spirals = channels.map((channel) =>
     createSpiral({
       ctx,
-      imageData,
+      id,
       channel,
       stopAt: 0.15,
       kind: "compressed",
@@ -204,8 +204,8 @@ export const runNewImage = async (
   w: number,
   h: number
 ) => {
-  const imageData = await getCoveredImageData(src, w, h);
-  await runImage(imageData, ctx);
+  const id = await getCoveredImageData(src, w, h);
+  await runImage(id, ctx);
 };
 
 export const runOverlayImage = async (
@@ -213,12 +213,12 @@ export const runOverlayImage = async (
   w: number,
   h: number
 ) => {
-  const imageData = ctx.getImageData(0, 0, w, h);
-  await runImage(imageData, ctx);
+  const id = ctx.getImageData(0, 0, w, h);
+  await runImage(id, ctx);
 };
 
 export const runRevealImage = async (
-  imageData: ImageData,
+  id: ImageData,
   ctx: CanvasRenderingContext2D,
   w: number
 ) => {
@@ -226,7 +226,7 @@ export const runRevealImage = async (
 
   const spiral = createSpiral({
     ctx,
-    imageData,
+    id,
     channel: 0,
     stopAt: 0.3,
     kind: "compressed",
@@ -240,9 +240,9 @@ export const runRevealImage = async (
     for (let i = 0; i < batch; i++) {
       if (spiral.done) return;
 
-      const r = imageData.data[4 * (w * spiral.y + spiral.x) + 0];
-      const g = imageData.data[4 * (w * spiral.y + spiral.x) + 1];
-      const b = imageData.data[4 * (w * spiral.y + spiral.x) + 2];
+      const r = id.data[4 * (w * spiral.y + spiral.x) + 0];
+      const g = id.data[4 * (w * spiral.y + spiral.x) + 1];
+      const b = id.data[4 * (w * spiral.y + spiral.x) + 2];
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(spiral.x, spiral.y, 1, 1);
 
