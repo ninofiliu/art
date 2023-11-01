@@ -1,2 +1,1 @@
-import "./index.css";
-import "./scratch/main";
+import "./screen-capture";
