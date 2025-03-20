@@ -1,3 +1,6 @@
+import vsSource from "./vertex.glsl?raw";
+import fsSource from "./fragment.glsl?raw";
+
 const canvas = document.createElement("canvas");
 canvas.width = 1024;
 canvas.height = 1024;
@@ -7,25 +10,6 @@ const gl = canvas.getContext("webgl2");
 if (!gl) {
   throw new Error("WebGL 2 is not supported");
 }
-
-// Vertex shader source
-const vsSource = `#version 300 es
-    in vec4 aVertexPosition;
-    void main() {
-        gl_Position = aVertexPosition;
-    }
-`;
-
-// Fragment shader source
-const fsSource = `#version 300 es
-    precision highp float;
-    out vec4 fragColor;
-    void main() {
-        float x = gl_FragCoord.x / 1024.0; // Normalized x coordinate
-        float y = gl_FragCoord.y / 1024.0; // Normalized y coordinate
-        fragColor = vec4(x, y, 0.0, 1.0);  // Set color based on normalized coordinates
-    }
-`;
 
 // Compile shader function
 function compileShader(
