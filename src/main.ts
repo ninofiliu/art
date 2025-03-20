@@ -1,1 +1,1 @@
-import "./screen-capture";
+import "./webgl";
