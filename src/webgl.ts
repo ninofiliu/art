@@ -1,15 +1,23 @@
 import vsSource from "./vertex.glsl?raw";
 import fsSource from "./fragment.glsl?raw";
 
+document.body.style.margin = "0";
+document.body.style.overflow = "hidden";
 const canvas = document.createElement("canvas");
-canvas.width = 1024;
-canvas.height = 1024;
 document.body.appendChild(canvas);
 
 const gl = canvas.getContext("webgl2");
 if (!gl) {
   throw new Error("WebGL 2 is not supported");
 }
+
+const onResize = () => {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+};
+window.addEventListener("resize", onResize);
+onResize();
 
 // Compile shader function
 function compileShader(
@@ -71,4 +79,16 @@ gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
 // Clear and draw
 gl.clearColor(0.0, 0.0, 0.0, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT);
-gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+const uniforms = {
+  iResolution: gl.getUniformLocation(shaderProgram, "iResolution"),
+};
+
+const render = () => {
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  gl.uniform3f(uniforms.iResolution, canvas.width, canvas.height, 0);
+
+  requestAnimationFrame(render);
+};
+render();
