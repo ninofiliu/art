@@ -16,5 +16,8 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "dependencies": {
+    "resolve-lygia": "^1.0.4"
   }
 }

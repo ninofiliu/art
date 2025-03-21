@@ -1,5 +1,9 @@
 import vsSource from "./vertex.glsl?raw";
-import fsSource from "./fragment.glsl?raw";
+import fsSourceUnresolved from "./fragment.glsl?raw";
+// @ts-expect-error
+import { resolveLygia } from "resolve-lygia";
+
+const fsSource = resolveLygia(fsSourceUnresolved);
 
 document.body.style.margin = "0";
 document.body.style.overflow = "hidden";

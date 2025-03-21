@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      resolve-lygia:
+        specifier: ^1.0.4
+        version: 1.0.4
     devDependencies:
       typescript:
         specifier: ^5.8.2
@@ -287,6 +291,9 @@ packages:
     resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
     engines: {node: ^10 || ^12 || >=14}
 
+  resolve-lygia@1.0.4:
+    resolution: {integrity: sha512-m4mdAUWOZQ+OGMIcS/lETS9ONNiqYAndWOvDKi1VmkytM/a8Yagibz7DyQUiPWT5a46BRzkvarn7Vg4EBVKEZA==}
+
   rollup@4.36.0:
     resolution: {integrity: sha512-zwATAXNQxUcd40zgtQG0ZafcRK4g004WtEl7kbuhTWPvf07PsfohXl39jVUvPF7jvNAIkKPQ2XrsDlWuxBd++Q==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -517,6 +524,8 @@ snapshots:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  resolve-lygia@1.0.4: {}
 
   rollup@4.36.0:
     dependencies:
