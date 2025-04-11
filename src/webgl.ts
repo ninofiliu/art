@@ -115,15 +115,14 @@ const updateTexture = (
   gl.bindTexture(gl.TEXTURE_2D, null);
 };
 
-const textures = Array(2)
-  .fill(null)
-  .map((_, i) => createTexture(gl, i));
-["/yellow_teeth.jpg", "/bug3.avif"].forEach((src, i) => {
+const textures = ["/forest.webp", "/frange.jpeg"].map((src, i) => {
   const img = document.createElement("img");
   img.src = src;
   img.addEventListener("load", () => {
     updateTexture(gl, textures[i], img);
   });
+  img.addEventListener("error", console.error);
+  return createTexture(gl, i);
 });
 
 const render = () => {
@@ -137,3 +136,23 @@ const render = () => {
   requestAnimationFrame(render);
 };
 render();
+
+const stats = document.createElement("pre");
+stats.style.position = "fixed";
+stats.style.top = "0";
+stats.style.margin = "0";
+stats.style.background = "rgba(0,0,0,0.5)";
+stats.style.color = "white";
+stats.style.padding = "0.5em";
+document.body.append(stats);
+
+let fps = 0;
+const loop = () => {
+  fps++;
+  requestAnimationFrame(loop);
+};
+loop();
+setInterval(() => {
+  stats.innerHTML = `${fps}fps`;
+  fps = 0;
+}, 1000);
