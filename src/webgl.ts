@@ -88,6 +88,7 @@ const uniforms = {
   iResolution: gl.getUniformLocation(shaderProgram, "iResolution"),
   tex0: gl.getUniformLocation(shaderProgram, "tex0"),
   tex1: gl.getUniformLocation(shaderProgram, "tex1"),
+  time: gl.getUniformLocation(shaderProgram, "time"),
 };
 
 gl.uniform1i(uniforms.tex0, 0);
@@ -105,32 +106,26 @@ const createTexture = (gl: WebGL2RenderingContext, index: number) => {
   return texture;
 };
 
-const updateTexture = (
-  gl: WebGL2RenderingContext,
-  texture: WebGLTexture,
-  image: HTMLImageElement
-): void => {
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-};
+const textures = ["/forest.webp", "/frange.jpeg", "/forest_depth.png"].map(
+  (src, i) => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.addEventListener("load", () => {
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    });
+    img.addEventListener("error", console.error);
+    return createTexture(gl, i);
+  }
+);
+gl.uniform1i(gl.getUniformLocation(shaderProgram, "tex1"), 1);
+gl.uniform1i(gl.getUniformLocation(shaderProgram, "tex2"), 2);
 
-const textures = ["/forest.webp", "/frange.jpeg"].map((src, i) => {
-  const img = document.createElement("img");
-  img.src = src;
-  img.addEventListener("load", () => {
-    updateTexture(gl, textures[i], img);
-  });
-  img.addEventListener("error", console.error);
-  return createTexture(gl, i);
-});
-
+const t0 = performance.now();
 const render = () => {
   gl.uniform3f(uniforms.iResolution, canvas.width, canvas.height, 0);
-  textures.forEach((t, i) => {
-    gl.activeTexture(gl.TEXTURE0 + i);
-    gl.bindTexture(gl.TEXTURE_2D, t);
-  });
+  gl.uniform1f(uniforms.time, (performance.now() - t0) / 1000);
 
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   requestAnimationFrame(render);
