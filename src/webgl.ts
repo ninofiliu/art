@@ -1,5 +1,5 @@
 import vsSource from "./vertex.glsl?raw";
-import fsSourceUnresolved from "./fragment.glsl?raw";
+import fsSourceUnresolved from "./fragment_spherical.glsl?raw";
 // @ts-expect-error
 import { resolveLygia } from "resolve-lygia";
 
@@ -106,7 +106,7 @@ const createTexture = (gl: WebGL2RenderingContext, index: number) => {
   return texture;
 };
 
-const textures = ["/forest.webp", "/frange.jpeg", "/forest_depth.png"].map(
+const textures = ["/forest.webp", "/bokeh3.png", "/forest_depth.png"].map(
   (src, i) => {
     const img = document.createElement("img");
     img.src = src;
@@ -151,3 +151,20 @@ setInterval(() => {
   stats.innerHTML = `${fps}fps`;
   fps = 0;
 }, 1000);
+
+document.addEventListener("keypress", (evt) => {
+  if (evt.key !== "r") return;
+  const recorder = new MediaRecorder(canvas.captureStream(), {
+    mimeType: "video/mp4",
+  });
+  recorder.addEventListener("dataavailable", (evt) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(evt.data);
+    a.download = "yeah";
+    a.click();
+  });
+  recorder.start();
+  setTimeout(() => {
+    recorder.stop();
+  }, 1000 * 2 * Math.PI);
+});
