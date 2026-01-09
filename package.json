@@ -19,6 +19,7 @@
     ]
   },
   "dependencies": {
+    "mediabunny": "^1.27.4",
     "resolve-lygia": "^1.0.4"
   }
 }
