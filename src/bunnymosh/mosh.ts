@@ -12,7 +12,7 @@ import {
 
 const input = new Input({
   formats: ALL_FORMATS,
-  source: new UrlSource("/pills_3s.mp4"),
+  source: new UrlSource("/highway2_5s.mp4"),
 });
 
 const track = await input.getPrimaryVideoTrack();
@@ -35,15 +35,17 @@ const pkts = [] as EncodedPacket[];
 for await (const pkt of sink.packets()) {
   pkts.push(pkt);
 }
+console.log(pkts);
 const fps = 1 / pkts[0].duration;
 
 console.log(pkts.length);
 const repkts = [
-  ...pkts,
-  ...pkts.slice(1),
+  ...Array(1)
+    .fill(null)
+    .flatMap(() => pkts.slice(0, 52)),
   ...Array(20)
     .fill(null)
-    .flatMap(() => pkts.slice(50, 55)),
+    .flatMap(() => pkts.slice(1, 50)),
 ].map((pkt, i) => new EncodedPacket(pkt.data, pkt.type, i / fps, pkt.duration));
 
 for (const pkt of repkts) {
