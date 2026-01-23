@@ -1,18 +1,14 @@
 import {
   ALL_FORMATS,
-  BufferTarget,
   EncodedPacket,
   EncodedPacketSink,
-  EncodedVideoPacketSource,
   Input,
-  Mp4OutputFormat,
-  Output,
   UrlSource,
 } from "mediabunny";
 
 const input = new Input({
   formats: ALL_FORMATS,
-  source: new UrlSource("/factory.baseline.mp4"),
+  source: new UrlSource("/memlena0.baseline.mp4"),
 });
 
 const track = await input.getPrimaryVideoTrack();
@@ -21,45 +17,56 @@ if (!track) throw new Error("no track");
 const decoderConfig = await track.getDecoderConfig();
 if (!decoderConfig) throw new Error("can't decode");
 
-const source = new EncodedVideoPacketSource(track.codec as "avc");
-
-const output = new Output({
-  format: new Mp4OutputFormat(),
-  target: new BufferTarget(),
-});
-output.addVideoTrack(source);
-await output.start();
-
+// Collect all packets first
 const sink = new EncodedPacketSink(track);
-const pkts = [] as EncodedPacket[];
+const pkts: EncodedPacket[] = [];
 for await (const pkt of sink.packets()) {
   pkts.push(pkt);
 }
-console.log(pkts);
-const fps = 1 / pkts[0].duration;
+console.log(`Collected ${pkts.length} packets`);
 
-console.log(pkts.length);
-const repkts = [
-  ...Array(1)
-    .fill(null)
-    .flatMap(() => pkts.slice(0, 52)),
-  ...Array(20)
-    .fill(null)
-    .flatMap(() => pkts.slice(1, 50)),
-].map((pkt, i) => new EncodedPacket(pkt.data, pkt.type, i / fps, pkt.duration));
+// Create canvas for output
+const canvas = document.createElement("canvas");
+canvas.width = decoderConfig.codedWidth!;
+canvas.height = decoderConfig.codedHeight!;
+document.body.append(canvas);
+const ctx = canvas.getContext("2d")!;
 
-for (const pkt of repkts) {
-  await source.add(pkt, { decoderConfig });
+// Decode packets and render to canvas in real-time
+const decoder = new VideoDecoder({
+  output: (frame) => {
+    ctx.drawImage(frame, 0, 0);
+    frame.close();
+  },
+  error: console.error,
+});
+
+decoder.configure(decoderConfig);
+
+const presses = {} as Record<string, boolean>;
+window.addEventListener("keydown", (evt) => {
+  presses[evt.key] = true;
+});
+window.addEventListener("keyup", (evt) => {
+  presses[evt.key] = false;
+});
+
+let i = 0;
+while (true) {
+  const pkt = pkts[~~i % pkts.length];
+  const chunk = new EncodedVideoChunk({
+    type: pkt.type,
+    timestamp: pkt.timestamp * 1_000_000,
+    duration: pkt.duration * 1_000_000,
+    data: pkt.data,
+  });
+  decoder.decode(chunk);
+  await new Promise((r) => setTimeout(r, pkt.duration * 1000));
+
+  if (presses["p"]) {
+    i += 0.5;
+  } else {
+    i++;
+  }
+  if (presses["i"]) i = 0;
 }
-
-await output.finalize();
-
-const video = document.createElement("video");
-video.src = URL.createObjectURL(new Blob([output.target.buffer!]));
-video.muted = true;
-video.autoplay = true;
-video.loop = true;
-video.controls = true;
-video.style.display = "block";
-video.style.width = "100%";
-document.body.append(video);
